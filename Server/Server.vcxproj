@@ -128,41 +128,57 @@
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Bins\$(PlatformTarget)\$(Configuration)\</OutDir>
+    <IncludePath>..\..\boost_1_78_0;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\boost_1_78_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (static)|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Bins\$(PlatformTarget)\$(Configuration)\</OutDir>
+    <IncludePath>..\..\boost_1_78_0;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\boost_1_78_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Bins\$(PlatformTarget)\$(Configuration)\</OutDir>
+    <IncludePath>..\..\boost_1_78_0;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\boost_1_78_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (static)|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Bins\$(PlatformTarget)\$(Configuration)\</OutDir>
+    <IncludePath>..\..\boost_1_78_0;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\boost_1_78_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Bins\$(PlatformTarget)\$(Configuration)\</OutDir>
+    <IncludePath>..\..\boost_1_78_0;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\boost_1_78_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (static)|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Bins\$(PlatformTarget)\$(Configuration)\</OutDir>
+    <IncludePath>..\..\boost_1_78_0;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\boost_1_78_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Bins\$(PlatformTarget)\$(Configuration)\</OutDir>
+    <IncludePath>..\..\boost_1_78_0;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\boost_1_78_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (static)|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(PlatformTarget)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Bins\$(PlatformTarget)\$(Configuration)\</OutDir>
+    <IncludePath>..\..\boost_1_78_0;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\boost_1_78_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -290,6 +306,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Server.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Server.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
