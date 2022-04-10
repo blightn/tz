@@ -4,16 +4,26 @@
 #include <iostream> // !
 #include <thread>
 
+#include <boost/beast/core.hpp>
+#include <boost/beast/websocket.hpp>
+#include <boost/asio/connect.hpp>
+#include <boost/asio/ip/tcp.hpp>
+
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
+namespace net = boost::asio;            // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
+
 class Server
 {
-	short m_port;
-	std::atomic_bool needExit = false;
+	std::string m_port;
+	net::io_context m_ioc;
+	std::atomic_bool m_needExit = false;
 
-	void startServer();
-	void stopServer();
+	void clientThread(tcp::socket socket);
 
 public:
-	Server(short port);
+	Server(std::string& port);
 	~Server();
 
 	void start();

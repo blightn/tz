@@ -1,6 +1,5 @@
 #include <iostream>
 #include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
 #include <csignal>
 
 #include "Client.hpp"
@@ -33,10 +32,10 @@ int main(int argc, char* argv[])
 			std::string address(argv[1]);
 
 			std::vector<std::string> res;
-			boost::split(res, argv[1], [](char c) { return c == ':'; });
+			boost::split(res, argv[1], [](char c){ return c == ':'; });
 
 			std::string host = res[0];
-			short port = boost::lexical_cast<short>(res[1]);
+			std::string port = res[1];
 
 			g_pClient = new Client(host, port);
 
@@ -55,13 +54,9 @@ int main(int argc, char* argv[])
 
 			return EXIT_SUCCESS;
 		}
-		catch (boost::bad_lexical_cast const&)
-		{
-			std::cout << "Bad port" << std::endl;
-		}
 		catch (std::exception const& ex)
 		{
-			std::cout << "Exception: " << ex.what() << std::endl;
+			std::cerr << "Error: " << ex.what() << std::endl;
 		}
 	}
 	else

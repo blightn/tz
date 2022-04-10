@@ -1,5 +1,4 @@
 #include <iostream>
-#include <boost/lexical_cast.hpp>
 #include <csignal>
 
 #include "Server.hpp"
@@ -26,7 +25,7 @@ int main(int argc, char* argv[])
 	{
 		try
 		{
-			short port = boost::lexical_cast<short>(argv[1]);
+			std::string port = argv[1];
 
 			g_pServer = new Server(port);
 			std::signal(SIGINT, &sigIntHandler);
@@ -37,13 +36,9 @@ int main(int argc, char* argv[])
 
 			return EXIT_SUCCESS;
 		}
-		catch (boost::bad_lexical_cast const&)
-		{
-			std::cout << "Bad port" << std::endl;
-		}
 		catch (std::exception const& ex)
 		{
-			std::cout << "Exception: " << ex.what() << std::endl;
+			std::cerr << "Error: " << ex.what() << std::endl;
 		}
 	}
 	else
