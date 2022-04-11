@@ -18,10 +18,12 @@ void Server::clientThread(tcp::socket socket)
 			std::cout << beast::make_printable(buffer.data()) << std::endl;
 		}
 	}
-	catch (beast::system_error const& se)
+	catch (beast::system_error const&)
 	{
-		throw std::exception("Connection closed.");
+		std::cout << "Connection closed." << std::endl;
 	}
+
+	std::cout << "Client disconnected." << std::endl;
 }
 
 Server::Server(std::string& port) :
@@ -45,17 +47,22 @@ void Server::start()
 
 	while (!m_needExit)
 	{
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
 		try
 		{
 			tcp::socket socket{ m_ioc };
 			acceptor.accept(socket);
-			std::thread(&Server::clientThread, this, std::move(socket)).detach();
+			m_threads.emplace_back(std::thread(&Server::clientThread, this, std::move(socket)));
 		}
 		catch (beast::system_error const&)
 		{
 		}
+	}
+
+	for (auto& th : m_threads)
+	{
+		th.join();
 	}
 }
 

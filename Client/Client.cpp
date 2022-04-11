@@ -2,12 +2,9 @@
 
 void Client::connect()
 {
+	m_pws = std::make_unique<websocket::stream<tcp::socket>>(m_ioc);
+
 	tcp::resolver resolver{ m_ioc };
-
-	m_pws = new websocket::stream<tcp::socket>{ m_ioc };
-	if (!m_pws)
-		throw std::exception("Can't create a websocket.");
-
 	auto const results = resolver.resolve(m_host, m_port);
 	auto ep = net::connect(m_pws->next_layer(), results);
 
@@ -17,12 +14,9 @@ void Client::connect()
 
 void Client::disconnect()
 {
-	if (m_pws)
+	if (m_pws && m_pws->is_open())
 	{
 		m_pws->close(websocket::close_code::normal);
-
-		delete m_pws;
-		m_pws = nullptr;
 	}
 }
 
@@ -30,7 +24,15 @@ Client::Client(std::string& host, std::string& port) :
 	m_host(host),
 	m_port(port)
 {
-	connect();
+
+	try
+	{
+		connect();
+	}
+	catch (...)
+	{
+		throw std::exception("Can't connect.");
+	}
 }
 
 Client::~Client()
@@ -66,7 +68,7 @@ void Client::start()
 			nextTime = std::chrono::system_clock::now() + std::chrono::seconds(distr(dre));
 		}
 
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
 	} while (!m_needExit);
 }

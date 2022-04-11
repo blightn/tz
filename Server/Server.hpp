@@ -18,6 +18,7 @@ class Server
 {
 	std::string m_port;
 	net::io_context m_ioc;
+	std::vector<std::thread> m_threads;
 	std::atomic_bool m_needExit = false;
 
 	void clientThread(tcp::socket socket);

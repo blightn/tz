@@ -22,7 +22,7 @@ class Client
 	std::string m_port;
 
 	net::io_context m_ioc;
-	websocket::stream<tcp::socket>* m_pws;
+	std::unique_ptr<websocket::stream<tcp::socket>> m_pws;
 
 	std::atomic_bool m_needExit = false;
 

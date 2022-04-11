@@ -3,18 +3,20 @@
 
 #include "Server.hpp"
 
-static Server* g_pServer = nullptr;
+static std::unique_ptr<Server> g_pServer = nullptr;
 
 void printUsage()
 {
-	std::cerr << "Usage:\n"
-	          << "\tport\n"
+	std::cerr << "Usage: server <port>\n"
+	          << "Example:\n"
+	          << "\tserver 12345\n"
 	          << std::endl;
 }
 
 void sigIntHandler(int signal)
 {
-	g_pServer->stop();
+	if (g_pServer)
+		g_pServer->stop();
 }
 
 int main(int argc, char* argv[])
@@ -26,13 +28,10 @@ int main(int argc, char* argv[])
 		try
 		{
 			std::string port = argv[1];
+			g_pServer = std::make_unique<Server>(port);
 
-			g_pServer = new Server(port);
 			std::signal(SIGINT, &sigIntHandler);
 			g_pServer->start();
-
-			delete g_pServer;
-			g_pServer = nullptr;
 
 			return EXIT_SUCCESS;
 		}

@@ -4,19 +4,20 @@
 
 #include "Client.hpp"
 
-static Client* g_pClient = nullptr;
+static std::unique_ptr<Client> g_pClient = nullptr;
 
 void printUsage()
 {
-	std::cerr << "Usage:\n"
-	          << "\thost:port\n"
-	          << "\t--statistic"
+	std::cerr << "Usage: client <host>:<port> [--statistic]\n"
+	          << "Example:\n"
+	          << "\tclient 0.0.0.0:12345 --statistic\n"
 	          << std::endl;
 }
 
 void sigIntHandler(int signal)
 {
-	g_pClient->stop();
+	if (g_pClient)
+		g_pClient->stop();
 }
 
 int main(int argc, char* argv[])
@@ -37,7 +38,7 @@ int main(int argc, char* argv[])
 			std::string host = res[0];
 			std::string port = res[1];
 
-			g_pClient = new Client(host, port);
+			g_pClient = std::make_unique<Client>(host, port);
 
 			if (statistic)
 			{
@@ -48,9 +49,6 @@ int main(int argc, char* argv[])
 				std::signal(SIGINT, &sigIntHandler);
 				g_pClient->start();
 			}
-
-			delete g_pClient;
-			g_pClient = nullptr;
 
 			return EXIT_SUCCESS;
 		}
