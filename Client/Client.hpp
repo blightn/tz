@@ -11,6 +11,10 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
@@ -20,6 +24,8 @@ class Client
 {
 	std::string m_host;
 	std::string m_port;
+
+	boost::uuids::uuid m_uuid;
 
 	net::io_context m_ioc;
 	std::unique_ptr<websocket::stream<tcp::socket>> m_pws;

@@ -24,6 +24,7 @@ Client::Client(std::string& host, std::string& port) :
 	m_host(host),
 	m_port(port)
 {
+	m_uuid = boost::uuids::random_generator()();
 
 	try
 	{
