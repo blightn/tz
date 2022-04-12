@@ -15,6 +15,14 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include "../protobuf/tz.pb.h"
+
+#ifdef _DEBUG
+#	pragma comment(lib, "libprotobufd")
+#else
+#	pragma comment(lib, "libprotobuf")
+#endif
+
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
@@ -36,6 +44,12 @@ class Client
 	void disconnect();
 
 public:
+	static const int INTERVAL_MIN = 5;
+	static const int INTERVAL_MAX = 30;
+
+	static constexpr double RANDOM_REAL_MIN = -90.0;
+	static constexpr double RANDOM_REAL_MAX = 90.0;
+
 	Client(std::string& host, std::string& port);
 	~Client();
 

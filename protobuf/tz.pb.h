@@ -241,18 +241,13 @@ class ClientPacket_Data final :
   std::string* _internal_mutable_uuid();
   public:
 
-  // string timestamp = 2;
+  // int64 timestamp = 2;
   void clear_timestamp();
-  const std::string& timestamp() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_timestamp(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_timestamp();
-  PROTOBUF_MUST_USE_RESULT std::string* release_timestamp();
-  void set_allocated_timestamp(std::string* timestamp);
+  ::PROTOBUF_NAMESPACE_ID::int64 timestamp() const;
+  void set_timestamp(::PROTOBUF_NAMESPACE_ID::int64 value);
   private:
-  const std::string& _internal_timestamp() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_timestamp(const std::string& value);
-  std::string* _internal_mutable_timestamp();
+  ::PROTOBUF_NAMESPACE_ID::int64 _internal_timestamp() const;
+  void _internal_set_timestamp(::PROTOBUF_NAMESPACE_ID::int64 value);
   public:
 
   // double x = 3;
@@ -281,7 +276,7 @@ class ClientPacket_Data final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr uuid_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr timestamp_;
+  ::PROTOBUF_NAMESPACE_ID::int64 timestamp_;
   double x_;
   double y_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -886,50 +881,24 @@ inline void ClientPacket_Data::set_allocated_uuid(std::string* uuid) {
   // @@protoc_insertion_point(field_set_allocated:tz.ClientPacket.Data.uuid)
 }
 
-// string timestamp = 2;
+// int64 timestamp = 2;
 inline void ClientPacket_Data::clear_timestamp() {
-  timestamp_.ClearToEmpty();
+  timestamp_ = int64_t{0};
 }
-inline const std::string& ClientPacket_Data::timestamp() const {
+inline ::PROTOBUF_NAMESPACE_ID::int64 ClientPacket_Data::_internal_timestamp() const {
+  return timestamp_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int64 ClientPacket_Data::timestamp() const {
   // @@protoc_insertion_point(field_get:tz.ClientPacket.Data.timestamp)
   return _internal_timestamp();
 }
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE
-void ClientPacket_Data::set_timestamp(ArgT0&& arg0, ArgT... args) {
- 
- timestamp_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+inline void ClientPacket_Data::_internal_set_timestamp(::PROTOBUF_NAMESPACE_ID::int64 value) {
+  
+  timestamp_ = value;
+}
+inline void ClientPacket_Data::set_timestamp(::PROTOBUF_NAMESPACE_ID::int64 value) {
+  _internal_set_timestamp(value);
   // @@protoc_insertion_point(field_set:tz.ClientPacket.Data.timestamp)
-}
-inline std::string* ClientPacket_Data::mutable_timestamp() {
-  std::string* _s = _internal_mutable_timestamp();
-  // @@protoc_insertion_point(field_mutable:tz.ClientPacket.Data.timestamp)
-  return _s;
-}
-inline const std::string& ClientPacket_Data::_internal_timestamp() const {
-  return timestamp_.Get();
-}
-inline void ClientPacket_Data::_internal_set_timestamp(const std::string& value) {
-  
-  timestamp_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
-}
-inline std::string* ClientPacket_Data::_internal_mutable_timestamp() {
-  
-  return timestamp_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
-}
-inline std::string* ClientPacket_Data::release_timestamp() {
-  // @@protoc_insertion_point(field_release:tz.ClientPacket.Data.timestamp)
-  return timestamp_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
-}
-inline void ClientPacket_Data::set_allocated_timestamp(std::string* timestamp) {
-  if (timestamp != nullptr) {
-    
-  } else {
-    
-  }
-  timestamp_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), timestamp,
-      GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set_allocated:tz.ClientPacket.Data.timestamp)
 }
 
 // double x = 3;

@@ -22,6 +22,8 @@ void sigIntHandler(int signal)
 
 int main(int argc, char* argv[])
 {
+	GOOGLE_PROTOBUF_VERIFY_VERSION;	
+
 	std::cout << "Client" << std::endl << std::endl;
 
 	bool statistic = false;
@@ -42,7 +44,7 @@ int main(int argc, char* argv[])
 
 			if (statistic)
 			{
-				std::cout << "Statistics: " << g_pClient->getStatistics() << std::endl;
+				std::cout << "Statistics: " << std::endl << g_pClient->getStatistics() << std::endl;
 			}
 			else
 			{

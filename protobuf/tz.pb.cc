@@ -20,7 +20,7 @@ namespace tz {
 constexpr ClientPacket_Data::ClientPacket_Data(
   ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
   : uuid_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
-  , timestamp_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
+  , timestamp_(int64_t{0})
   , x_(0)
   , y_(0){}
 struct ClientPacket_DataDefaultTypeInternal {
@@ -137,7 +137,7 @@ const char descriptor_table_protodef_tz_2eproto[] PROTOBUF_SECTION_VARIABLE(prot
   "\n\010tz.proto\022\002tz\"\323\001\n\014ClientPacket\022)\n\004type\030"
   "\001 \001(\0162\033.tz.ClientPacket.PacketType\022(\n\004da"
   "ta\030\002 \001(\0132\025.tz.ClientPacket.DataH\000\210\001\001\032=\n\004"
-  "Data\022\014\n\004uuid\030\001 \001(\t\022\021\n\ttimestamp\030\002 \001(\t\022\t\n"
+  "Data\022\014\n\004uuid\030\001 \001(\t\022\021\n\ttimestamp\030\002 \001(\003\022\t\n"
   "\001x\030\003 \001(\001\022\t\n\001y\030\004 \001(\001\"&\n\nPacketType\022\010\n\004DAT"
   "A\020\000\022\016\n\nSTATISTICS\020\001B\007\n\005_data\"\213\001\n\017ServerS"
   "tatistic\022-\n\006client\030\001 \003(\0132\035.tz.ServerStat"
@@ -204,24 +204,18 @@ ClientPacket_Data::ClientPacket_Data(const ClientPacket_Data& from)
     uuid_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_uuid(), 
       GetArenaForAllocation());
   }
-  timestamp_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_timestamp().empty()) {
-    timestamp_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_timestamp(), 
-      GetArenaForAllocation());
-  }
-  ::memcpy(&x_, &from.x_,
+  ::memcpy(&timestamp_, &from.timestamp_,
     static_cast<size_t>(reinterpret_cast<char*>(&y_) -
-    reinterpret_cast<char*>(&x_)) + sizeof(y_));
+    reinterpret_cast<char*>(&timestamp_)) + sizeof(y_));
   // @@protoc_insertion_point(copy_constructor:tz.ClientPacket.Data)
 }
 
 void ClientPacket_Data::SharedCtor() {
 uuid_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-timestamp_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
-    reinterpret_cast<char*>(&x_) - reinterpret_cast<char*>(this)),
+    reinterpret_cast<char*>(&timestamp_) - reinterpret_cast<char*>(this)),
     0, static_cast<size_t>(reinterpret_cast<char*>(&y_) -
-    reinterpret_cast<char*>(&x_)) + sizeof(y_));
+    reinterpret_cast<char*>(&timestamp_)) + sizeof(y_));
 }
 
 ClientPacket_Data::~ClientPacket_Data() {
@@ -234,7 +228,6 @@ ClientPacket_Data::~ClientPacket_Data() {
 inline void ClientPacket_Data::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   uuid_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  timestamp_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 
 void ClientPacket_Data::ArenaDtor(void* object) {
@@ -254,10 +247,9 @@ void ClientPacket_Data::Clear() {
   (void) cached_has_bits;
 
   uuid_.ClearToEmpty();
-  timestamp_.ClearToEmpty();
-  ::memset(&x_, 0, static_cast<size_t>(
+  ::memset(&timestamp_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&y_) -
-      reinterpret_cast<char*>(&x_)) + sizeof(y_));
+      reinterpret_cast<char*>(&timestamp_)) + sizeof(y_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -277,12 +269,10 @@ const char* ClientPacket_Data::_InternalParse(const char* ptr, ::PROTOBUF_NAMESP
         } else
           goto handle_unusual;
         continue;
-      // string timestamp = 2;
+      // int64 timestamp = 2;
       case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
-          auto str = _internal_mutable_timestamp();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "tz.ClientPacket.Data.timestamp"));
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 16)) {
+          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -342,14 +332,10 @@ failure:
         1, this->_internal_uuid(), target);
   }
 
-  // string timestamp = 2;
-  if (!this->_internal_timestamp().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_timestamp().data(), static_cast<int>(this->_internal_timestamp().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "tz.ClientPacket.Data.timestamp");
-    target = stream->WriteStringMaybeAliased(
-        2, this->_internal_timestamp(), target);
+  // int64 timestamp = 2;
+  if (this->_internal_timestamp() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt64ToArray(2, this->_internal_timestamp(), target);
   }
 
   // double x = 3;
@@ -387,11 +373,9 @@ size_t ClientPacket_Data::ByteSizeLong() const {
         this->_internal_uuid());
   }
 
-  // string timestamp = 2;
-  if (!this->_internal_timestamp().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_timestamp());
+  // int64 timestamp = 2;
+  if (this->_internal_timestamp() != 0) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int64SizePlusOne(this->_internal_timestamp());
   }
 
   // double x = 3;
@@ -429,7 +413,7 @@ void ClientPacket_Data::MergeFrom(const ClientPacket_Data& from) {
   if (!from._internal_uuid().empty()) {
     _internal_set_uuid(from._internal_uuid());
   }
-  if (!from._internal_timestamp().empty()) {
+  if (from._internal_timestamp() != 0) {
     _internal_set_timestamp(from._internal_timestamp());
   }
   if (!(from._internal_x() <= 0 && from._internal_x() >= 0)) {
@@ -462,17 +446,12 @@ void ClientPacket_Data::InternalSwap(ClientPacket_Data* other) {
       &uuid_, lhs_arena,
       &other->uuid_, rhs_arena
   );
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      &timestamp_, lhs_arena,
-      &other->timestamp_, rhs_arena
-  );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(ClientPacket_Data, y_)
       + sizeof(ClientPacket_Data::y_)
-      - PROTOBUF_FIELD_OFFSET(ClientPacket_Data, x_)>(
-          reinterpret_cast<char*>(&x_),
-          reinterpret_cast<char*>(&other->x_));
+      - PROTOBUF_FIELD_OFFSET(ClientPacket_Data, timestamp_)>(
+          reinterpret_cast<char*>(&timestamp_),
+          reinterpret_cast<char*>(&other->timestamp_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata ClientPacket_Data::GetMetadata() const {
