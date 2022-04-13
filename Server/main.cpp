@@ -21,6 +21,8 @@ void sigIntHandler(int signal)
 
 int main(int argc, char* argv[])
 {
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+
 	std::cout << "Server" << std::endl << std::endl;
 
 	if (argc == 2)

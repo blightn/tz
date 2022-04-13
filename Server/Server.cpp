@@ -11,11 +11,31 @@ void Server::clientThread(tcp::socket socket)
 		{
 			beast::flat_buffer buffer;
 
-			ws.read(buffer);
-			ws.text(ws.got_text());
-			ws.write(buffer.data());
+			//ws.read(buffer);
+			//ws.text(ws.got_text());
+			//ws.write(buffer.data());
 
-			std::cout << beast::make_printable(buffer.data()) << std::endl;
+			ws.read(buffer);
+
+			tz::ClientPacket packet;
+			packet.ParseFromString(beast::buffers_to_string(buffer.data()));
+
+			switch (packet.type())
+			{
+			case tz::ClientPacket::DATA:
+				saveClientPacket(packet);
+				break;
+
+			case tz::ClientPacket::STATISTICS:
+				//tz::ServerStatistic stats = collectStatistics();
+				ws.write(net::buffer(collectStatistics()->SerializeAsString()));
+				break;
+
+			default:
+				std::cout << "Unknown packet type. Ignoring..." << std::endl;
+			}
+
+			//std::cout << beast::make_printable(buffer.data()) << std::endl;
 		}
 	}
 	catch (beast::system_error const&)
@@ -24,6 +44,23 @@ void Server::clientThread(tcp::socket socket)
 	}
 
 	std::cout << "Client disconnected." << std::endl;
+}
+
+void Server::saveClientPacket(tz::ClientPacket& packet)
+{
+	if (packet.has_data())
+	{
+
+	}
+}
+
+std::unique_ptr<tz::ServerStatistic> Server::collectStatistics()
+{
+	auto stats = std::make_unique<tz::ServerStatistic>();
+
+
+
+	return stats;
 }
 
 Server::Server(std::string& port) :

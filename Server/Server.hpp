@@ -9,6 +9,14 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
+#include "../protobuf/tz.pb.h"
+
+#ifdef _DEBUG
+#	pragma comment(lib, "libprotobufd")
+#else
+#	pragma comment(lib, "libprotobuf")
+#endif
+
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
@@ -22,6 +30,9 @@ class Server
 	std::atomic_bool m_needExit = false;
 
 	void clientThread(tcp::socket socket);
+
+	void saveClientPacket(tz::ClientPacket& packet);
+	std::unique_ptr<tz::ServerStatistic> collectStatistics();
 
 public:
 	Server(std::string& port);
