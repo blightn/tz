@@ -31,11 +31,11 @@ class Server
 
 	void clientThread(tcp::socket socket);
 
-	void saveClientPacket(tz::ClientPacket& packet);
+	void saveClientPacket(const tz::ClientPacket& packet);
 	std::unique_ptr<tz::ServerStatistic> collectStatistics();
 
 public:
-	Server(std::string& port);
+	Server(const std::string& port);
 	~Server();
 
 	void start();

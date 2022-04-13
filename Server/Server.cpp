@@ -5,16 +5,12 @@ void Server::clientThread(tcp::socket socket)
 	try
 	{
 		websocket::stream<tcp::socket> ws{ std::move(socket) };
+		ws.binary(true);
 		ws.accept();
 
 		while (!m_needExit)
 		{
 			beast::flat_buffer buffer;
-
-			//ws.read(buffer);
-			//ws.text(ws.got_text());
-			//ws.write(buffer.data());
-
 			ws.read(buffer);
 
 			tz::ClientPacket packet;
@@ -27,15 +23,12 @@ void Server::clientThread(tcp::socket socket)
 				break;
 
 			case tz::ClientPacket::STATISTICS:
-				//tz::ServerStatistic stats = collectStatistics();
 				ws.write(net::buffer(collectStatistics()->SerializeAsString()));
 				break;
 
 			default:
 				std::cout << "Unknown packet type. Ignoring..." << std::endl;
 			}
-
-			//std::cout << beast::make_printable(buffer.data()) << std::endl;
 		}
 	}
 	catch (beast::system_error const&)
@@ -46,11 +39,13 @@ void Server::clientThread(tcp::socket socket)
 	std::cout << "Client disconnected." << std::endl;
 }
 
-void Server::saveClientPacket(tz::ClientPacket& packet)
+void Server::saveClientPacket(const tz::ClientPacket& packet)
 {
 	if (packet.has_data())
 	{
-
+		auto data = packet.data();
+		std::string tmp = "Packet: " + data.uuid() + " " + std::to_string(data.timestamp()) + " " + std::to_string(data.x()) + " " + std::to_string(data.y());
+		std::cout << tmp << std::endl;
 	}
 }
 
@@ -58,13 +53,19 @@ std::unique_ptr<tz::ServerStatistic> Server::collectStatistics()
 {
 	auto stats = std::make_unique<tz::ServerStatistic>();
 
-
+	auto client = stats->add_client();
+	client->set_uuid("uuid");
+	client->set_x1(1.0);
+	client->set_y1(2.0);
+	client->set_x5(3.0);
+	client->set_y5(4.0);
 
 	return stats;
 }
 
-Server::Server(std::string& port) :
-	m_port(port)
+Server::Server(const std::string& port) :
+	m_port(port),
+	m_psqlite3(std::make_unique<SQLite>(Server::DB_NAME))
 {
 
 }
@@ -80,7 +81,7 @@ void Server::start()
 	auto const port = static_cast<unsigned short>(std::atoi(m_port.c_str()));
 
 	tcp::acceptor acceptor{ m_ioc, {address, port} };
-	acceptor.non_blocking(true); // Because async_accept() doesn't want to run the function!!!
+	acceptor.non_blocking(true);
 
 	while (!m_needExit)
 	{

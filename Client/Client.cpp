@@ -3,6 +3,7 @@
 void Client::connect()
 {
 	m_pws = std::make_unique<websocket::stream<tcp::socket>>(m_ioc);
+	m_pws->binary(true);
 
 	tcp::resolver resolver{ m_ioc };
 	auto const results = resolver.resolve(m_host, m_port);
@@ -20,7 +21,7 @@ void Client::disconnect()
 	}
 }
 
-Client::Client(std::string& host, std::string& port) :
+Client::Client(const std::string& host, const std::string& port) :
 	m_host(host),
 	m_port(port)
 {
@@ -58,19 +59,19 @@ void Client::start()
 		{
 			std::cout << "Sending a packet..." << std::endl;
 
-			tz::ClientPacket::Data data;
-			data.set_uuid(to_string(m_uuid));
-			data.set_timestamp(std::chrono::system_clock::now().time_since_epoch().count());
-			data.set_x(dg(dre));
-			data.set_y(dg(dre));
+			tz::ClientPacket::Data* pdata = new tz::ClientPacket::Data;
+			pdata->set_uuid(boost::uuids::to_string(m_uuid));
+			pdata->set_timestamp(std::chrono::system_clock::now().time_since_epoch().count());
+			pdata->set_x(dg(dre));
+			pdata->set_y(dg(dre));
 
 			tz::ClientPacket packet;
 			packet.set_type(tz::ClientPacket::DATA);
-			packet.set_allocated_data(&data);
+			packet.set_allocated_data(pdata);
 
 			try
 			{
-				m_pws->write(net::buffer(packet.SerializeAsString()));
+				size_t bytesSent = m_pws->write(net::buffer(packet.SerializeAsString()));
 			}
 			catch (beast::system_error const&)
 			{
@@ -92,36 +93,37 @@ void Client::stop()
 
 std::string Client::getStatistics()
 {
-	std::cout << "Getting statistics..." << std::endl;
-
-	if (!m_pws)
-		throw std::exception("Not connected.");
-
 	tz::ClientPacket packet;
 	packet.set_type(tz::ClientPacket::STATISTICS);
 	packet.set_allocated_data(nullptr);
 
-	m_pws->write(net::buffer(packet.SerializeAsString()));
-
 	beast::flat_buffer buffer;
-	m_pws->read(buffer);
+	try
+	{
+		m_pws->write(net::buffer(packet.SerializeAsString()));
+		m_pws->read(buffer);
+	}
+	catch (beast::system_error const&)
+	{
+		throw std::exception("Can't get statistics.");
+	}
 
 	tz::ServerStatistic stats;
 	stats.ParseFromString(beast::buffers_to_string(buffer.data()));
 
-	std::string tmp = "UUID X_1 Y_1 X_5 Y_5\n";
+	std::string statsStr = "UUID X_1 Y_1 X_5 Y_5\n";
 	for (int i = 0; i < stats.client_size(); ++i)
 	{
 		if (i)
-			tmp += "\n";
+			statsStr += "\n";
 
 		auto client = stats.client(i);
-		tmp += client.uuid() + " " +
+		statsStr += client.uuid() + " " +
 			std::to_string(client.x1()) + " " +
 			std::to_string(client.y1()) + " " +
 			std::to_string(client.x5()) + " " +
 			std::to_string(client.y5());
 	}
 
-	return tmp;
+	return statsStr;
 }

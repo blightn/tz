@@ -29,6 +29,12 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 class Client
 {
+	static const int INTERVAL_MIN = 5;
+	static const int INTERVAL_MAX = 30;
+
+	static constexpr double RANDOM_REAL_MIN = -90.0;
+	static constexpr double RANDOM_REAL_MAX = 90.0;
+
 	std::string m_host;
 	std::string m_port;
 
@@ -43,13 +49,7 @@ class Client
 	void disconnect();
 
 public:
-	static const int INTERVAL_MIN = 5;
-	static const int INTERVAL_MAX = 30;
-
-	static constexpr double RANDOM_REAL_MIN = -90.0;
-	static constexpr double RANDOM_REAL_MAX = 90.0;
-
-	Client(std::string& host, std::string& port);
+	Client(const std::string& host, const std::string& port);
 	~Client();
 
 	void start();
