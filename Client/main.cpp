@@ -17,7 +17,9 @@ void printUsage()
 void sigIntHandler(int signal)
 {
 	if (g_pClient)
+	{
 		g_pClient->stop();
+	}
 }
 
 int main(int argc, char* argv[])
@@ -54,7 +56,7 @@ int main(int argc, char* argv[])
 
 			return EXIT_SUCCESS;
 		}
-		catch (std::exception const& ex)
+		catch (const std::exception& ex)
 		{
 			std::cerr << "Error: " << ex.what() << std::endl;
 		}

@@ -35,15 +35,12 @@ class Client
 	static constexpr double RANDOM_REAL_MIN = -90.0;
 	static constexpr double RANDOM_REAL_MAX = 90.0;
 
-	std::string m_host;
-	std::string m_port;
-
+	std::string        m_host;
+	std::string        m_port;
 	boost::uuids::uuid m_uuid;
-
-	net::io_context m_ioc;
+	net::io_context    m_ioc;
+	std::atomic_bool   m_needExit = false;
 	std::unique_ptr<websocket::stream<tcp::socket>> m_pws;
-
-	std::atomic_bool m_needExit = false;
 
 	void connect();
 	void disconnect();

@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
 
 			return EXIT_SUCCESS;
 		}
-		catch (std::exception const& ex)
+		catch (const std::exception& ex)
 		{
 			std::cerr << "Error: " << ex.what() << std::endl;
 		}

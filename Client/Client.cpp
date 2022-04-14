@@ -73,7 +73,7 @@ void Client::start()
 			{
 				size_t bytesSent = m_pws->write(net::buffer(packet.SerializeAsString()));
 			}
-			catch (beast::system_error const&)
+			catch (const beast::system_error&)
 			{
 				throw std::exception("Connection closed.");
 			}
@@ -103,7 +103,7 @@ std::string Client::getStatistics()
 		m_pws->write(net::buffer(packet.SerializeAsString()));
 		m_pws->read(buffer);
 	}
-	catch (beast::system_error const&)
+	catch (const beast::system_error&)
 	{
 		throw std::exception("Can't get statistics.");
 	}
@@ -114,8 +114,7 @@ std::string Client::getStatistics()
 	std::string statsStr = "UUID X_1 Y_1 X_5 Y_5\n";
 	for (int i = 0; i < stats.client_size(); ++i)
 	{
-		if (i)
-			statsStr += "\n";
+		if (i) statsStr += "\n";
 
 		auto client = stats.client(i);
 		statsStr += client.uuid() + " " +

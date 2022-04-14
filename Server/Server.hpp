@@ -26,11 +26,13 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 class Server
 {
-	std::string m_port;
-	net::io_context m_ioc;
 	inline static const std::string DB_NAME = "tz.sqlite3";
+
+	std::string              m_port;
+	net::io_context          m_ioc;
+	std::unique_ptr<SQLite>  m_psqlite3;
 	std::vector<std::thread> m_threads;
-	std::atomic_bool m_needExit = false;
+	std::atomic_bool         m_needExit = false;
 
 	void clientThread(tcp::socket socket);
 

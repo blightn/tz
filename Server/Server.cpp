@@ -31,9 +31,13 @@ void Server::clientThread(tcp::socket socket)
 			}
 		}
 	}
-	catch (beast::system_error const&)
+	catch (const beast::system_error&)
 	{
-		std::cout << "Connection closed." << std::endl;
+		std::cerr << "Connection closed." << std::endl;
+	}
+	catch (const std::exception& ex)
+	{
+		std::cerr << "Error: " << ex.what() << std::endl;
 	}
 
 	std::cout << "Client disconnected." << std::endl;
