@@ -3,6 +3,7 @@
 
 #include <iostream> // !
 #include <thread>
+#include <vector>
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
@@ -10,6 +11,7 @@
 #include <boost/asio/ip/tcp.hpp>
 
 #include "../protobuf/tz.pb.h"
+#include "SQLite.hpp"
 
 #ifdef _DEBUG
 #	pragma comment(lib, "libprotobufd")
@@ -26,6 +28,7 @@ class Server
 {
 	std::string m_port;
 	net::io_context m_ioc;
+	inline static const std::string DB_NAME = "tz.sqlite3";
 	std::vector<std::thread> m_threads;
 	std::atomic_bool m_needExit = false;
 

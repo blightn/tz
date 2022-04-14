@@ -306,12 +306,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\protobuf\tz.pb.cc" />
+    <ClCompile Include="..\sqlite3\sqlite3.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Server.cpp" />
+    <ClCompile Include="SQLite.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\protobuf\tz.pb.h" />
+    <ClInclude Include="..\sqlite3\sqlite3.h" />
     <ClInclude Include="Server.hpp" />
+    <ClInclude Include="SQLite.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
