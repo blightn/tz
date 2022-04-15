@@ -135,7 +135,22 @@ void SQLite::insertOne(const std::string& tableName, const std::vector<TableValu
 	}
 }
 
-std::vector<TableValue> SQLite::selectOne(const std::string& tableName, const std::vector<TableColumn>& columns, const WhereClause* pWhereClause)
+std::unique_ptr<std::vector<TableValue>> SQLite::selectOne(const std::string& tableName, const std::vector<TableColumn>& columns,
+	const WhereClause* pWhereClause, const OrderByClause* pOrderByClause)
+{
+	std::unique_ptr<std::vector<std::vector<TableValue>>> rows = selectMany(tableName, columns, pWhereClause, pOrderByClause, 1);
+	std::unique_ptr<std::vector<TableValue>> row = std::make_unique<std::vector<TableValue>>();
+
+	if (!rows->empty())
+	{
+		*row = rows->at(0);
+	}
+
+	return row;
+}
+
+std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const std::string& tableName, const std::vector<TableColumn>& columns,
+	const WhereClause* pWhereClause, const OrderByClause* pOrderByClause, size_t rowCount)
 {
 	if (tableName.empty() || columns.empty())
 	{
@@ -190,6 +205,22 @@ std::vector<TableValue> SQLite::selectOne(const std::string& tableName, const st
 			throw std::exception("Invalid type.");
 	}
 
+	if (pOrderByClause)
+	{
+		query += " ORDER BY " + pOrderByClause->columnName() + " ";
+
+		if (pOrderByClause->order() == SortingOrder::SO_ASC)
+		{
+			query += "ASC";
+		}
+		else if (pOrderByClause->order() == SortingOrder::SO_DESC)
+		{
+			query += "DESC";
+		}
+		else
+			throw std::exception("Invalid sorting order.");
+	}
+
 	query += ";";
 
 	sqlite3_stmt* pstmt = nullptr;
@@ -200,13 +231,12 @@ std::vector<TableValue> SQLite::selectOne(const std::string& tableName, const st
 		throw std::exception(text.c_str());
 	}
 
-	std::vector<TableValue> row;
-	res = sqlite3_step(pstmt);
-	std::string err;
+	std::unique_ptr<std::vector<std::vector<TableValue>>> rows = std::make_unique<std::vector<std::vector<TableValue>>>();
 
-	if (res == SQLITE_ROW)
+	while (rowCount && sqlite3_step(pstmt) == SQLITE_ROW)
 	{
 		int i = 0;
+		std::vector<TableValue> row;
 
 		for (const auto& c : columns)
 		{
@@ -215,26 +245,17 @@ std::vector<TableValue> SQLite::selectOne(const std::string& tableName, const st
 			case ColumnType::CT_INTEGER: row.push_back(TableValue(c.name(), sqlite3_column_int64(pstmt, i)));  break;
 			case ColumnType::CT_REAL:    row.push_back(TableValue(c.name(), sqlite3_column_double(pstmt, i))); break;
 			case ColumnType::CT_TEXT:    row.push_back(TableValue(c.name(), static_cast<std::string>((const char*)sqlite3_column_text(pstmt, i)))); break;
-			default:
-				err = "Unknown column type.";
 			}
-
-			if (!err.empty())
-				break;
 
 			++i;
 		}
-	}
-	else if (res != SQLITE_DONE)
-	{
-		err = "Can't SELECT from table \"" + tableName + "\".";
+
+		rows->push_back(row);
+		--rowCount;
 	}
 
 	sqlite3_finalize(pstmt);
 	pstmt = nullptr;
 
-	if (!err.empty())
-		throw std::exception(err.c_str());
-
-	return row;
+	return rows;
 }

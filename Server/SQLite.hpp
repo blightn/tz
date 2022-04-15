@@ -5,6 +5,7 @@
 #include <exception>
 #include <vector>
 #include <any>
+#include <memory>
 
 #include "..\sqlite3\sqlite3.h"
 
@@ -66,6 +67,23 @@ public:
 	ComparisonType type() const { return m_type;  };
 };
 
+enum class SortingOrder { SO_ASC, SO_DESC };
+
+class OrderByClause
+{
+	std::string  m_columnName;
+	SortingOrder m_order;
+
+public:
+	OrderByClause(const std::string& columnName, const SortingOrder& order) :
+		m_columnName(columnName),
+		m_order(order)
+	{ }
+
+	std::string columnName() const { return m_columnName; };
+	SortingOrder order()     const { return m_order;      };
+};
+
 class SQLite
 {
 	sqlite3* m_psqlite3 = nullptr;
@@ -76,7 +94,10 @@ public:
 
 	void createTable(const std::string& tableName, const std::vector<TableColumn>& columns);
 	void insertOne(const std::string& tableName, const std::vector<TableValue>& values);
-	std::vector<TableValue> selectOne(const std::string& tableName, const std::vector<TableColumn>& columns, const WhereClause* pWhereClause = nullptr);
+	std::unique_ptr<std::vector<TableValue>> selectOne(const std::string& tableName, const std::vector<TableColumn>& columns,
+		const WhereClause* pWhereClause = nullptr, const OrderByClause* pOrderByClause = nullptr);
+	std::unique_ptr<std::vector<std::vector<TableValue>>> selectMany(const std::string& tableName, const std::vector<TableColumn>& columns,
+		const WhereClause* pWhereClause = nullptr, const OrderByClause* pOrderByClause = nullptr, size_t rowCount = -1);
 };
 
 #endif // _SQLITE_H_
