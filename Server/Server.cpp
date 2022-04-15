@@ -19,11 +19,17 @@ void Server::clientThread(tcp::socket socket)
 			switch (packet.type())
 			{
 			case tz::ClientPacket::DATA:
+				std::cout << "Packet received: "
+					      << packet.data().uuid()                      << " "
+					      << std::to_string(packet.data().timestamp()) << " "
+					      << std::to_string(packet.data().x())         << " "
+					      << std::to_string(packet.data().y())         << std::endl;
 				saveClientPacket(packet);
 				break;
 
 			case tz::ClientPacket::STATISTICS:
 				ws.write(net::buffer(collectStatistics()->SerializeAsString()));
+				std::cout << "Statistics sent." << std::endl;
 				break;
 
 			default:
@@ -48,9 +54,6 @@ void Server::saveClientPacket(const tz::ClientPacket& packet)
 	if (packet.has_data())
 	{
 		auto data = packet.data();
-
-		std::string tmp = "Packet: " + data.uuid() + " " + std::to_string(data.timestamp()) + " " + std::to_string(data.x()) + " " + std::to_string(data.y());
-		std::cout << tmp << std::endl;
 
 		std::string tableName = Server::CLIENTS_TABLE_NAME;
 		std::vector<TableColumn> columns
@@ -214,11 +217,6 @@ Server::Server(const std::string& port) :
 	m_psqlite3->createTable(tableName, columns);
 }
 
-Server::~Server()
-{
-	std::cout << "Server's destructor" << std::endl;
-}
-
 void Server::start()
 {
 	auto const address = net::ip::make_address("0.0.0.0");
@@ -237,7 +235,7 @@ void Server::start()
 			acceptor.accept(socket);
 			m_threads.emplace_back(std::thread(&Server::clientThread, this, std::move(socket)));
 		}
-		catch (beast::system_error const&)
+		catch (const beast::system_error&)
 		{
 		}
 	}

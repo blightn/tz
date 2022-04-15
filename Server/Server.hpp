@@ -1,7 +1,7 @@
 #ifndef _SERVER_H_
 #define _SERVER_H_
 
-#include <iostream> // !
+#include <iostream>
 #include <thread>
 #include <vector>
 #include <any>
@@ -55,7 +55,7 @@ class Server
 
 public:
 	Server(const std::string& port);
-	~Server();
+	~Server() {};
 
 	void start();
 	void stop();

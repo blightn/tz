@@ -40,8 +40,6 @@ Client::Client(const std::string& host, const std::string& port) :
 Client::~Client()
 {
 	disconnect();
-
-	std::cout << "Client's destructor" << std::endl;
 }
 
 void Client::start()
@@ -112,17 +110,23 @@ std::string Client::getStatistics()
 	stats.ParseFromString(beast::buffers_to_string(buffer.data()));
 
 	std::string statsStr = "UUID X_1 Y_1 X_5 Y_5\n";
-	for (int i = 0; i < stats.client_size(); ++i)
-	{
-		if (i) statsStr += "\n";
 
-		auto client = stats.client(i);
-		statsStr += client.uuid() + " " +
-			std::to_string(client.x1()) + " " +
-			std::to_string(client.y1()) + " " +
-			std::to_string(client.x5()) + " " +
-			std::to_string(client.y5());
+	if (stats.client_size())
+	{
+		for (int i = 0; i < stats.client_size(); ++i)
+		{
+			if (i) statsStr += "\n";
+
+			auto client = stats.client(i);
+			statsStr += client.uuid()               + " " +
+				        std::to_string(client.x1()) + " " +
+				        std::to_string(client.y1()) + " " +
+				        std::to_string(client.x5()) + " " +
+				        std::to_string(client.y5());
+		}
 	}
+	else
+		statsStr += "There are no statistics.";
 
 	return statsStr;
 }
