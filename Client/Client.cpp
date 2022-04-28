@@ -70,6 +70,7 @@ void Client::start()
 			try
 			{
 				size_t bytesSent = m_pws->write(net::buffer(packet.SerializeAsString()));
+				std::cout << "Packet sent (" << bytesSent << " bytes)." << std::endl;
 			}
 			catch (const beast::system_error&)
 			{

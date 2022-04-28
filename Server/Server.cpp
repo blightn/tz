@@ -55,7 +55,6 @@ void Server::saveClientPacket(const tz::ClientPacket& packet)
 	{
 		auto data = packet.data();
 
-		std::string tableName = Server::CLIENTS_TABLE_NAME;
 		std::vector<TableColumn> columns
 		{
 			TableColumn(CLIENTS_COLUMN_ID, ColumnType::CT_INTEGER, true ),
@@ -64,7 +63,7 @@ void Server::saveClientPacket(const tz::ClientPacket& packet)
 
 		try
 		{
-			auto client = m_psqlite3->selectOne(tableName, columns, &whereClause);
+			auto client = m_psqlite3->selectOne(Server::CLIENTS_TABLE_NAME, columns, &whereClause);
 
 			if (client->empty())
 			{
@@ -72,12 +71,11 @@ void Server::saveClientPacket(const tz::ClientPacket& packet)
 				{
 					TableValue(CLIENTS_COLUMN_UUID, data.uuid()),
 				};
-				m_psqlite3->insertOne(tableName, values);
+				m_psqlite3->insertOne(Server::CLIENTS_TABLE_NAME, values);
 
-				client = m_psqlite3->selectOne(tableName, columns, &whereClause);
+				client = m_psqlite3->selectOne(Server::CLIENTS_TABLE_NAME, columns, &whereClause);
 			}
 
-			tableName = Server::PACKETS_TABLE_NAME;
 			std::vector<TableValue> values
 			{
 				TableValue(PACKETS_COLUMN_CLIENT_ID, client->at(0).value()),
@@ -85,7 +83,7 @@ void Server::saveClientPacket(const tz::ClientPacket& packet)
 				TableValue(PACKETS_COLUMN_X,         data.x()             ),
 				TableValue(PACKETS_COLUMN_Y,         data.y()             ),
 			};
-			m_psqlite3->insertOne(tableName, values);
+			m_psqlite3->insertOne(Server::PACKETS_TABLE_NAME, values);
 		}
 		catch (const std::exception& ex)
 		{
@@ -103,25 +101,23 @@ std::unique_ptr<tz::ServerStatistic> Server::collectStatistics()
 {
 	auto stats = std::make_unique<tz::ServerStatistic>();
 
-	std::string tableName = Server::CLIENTS_TABLE_NAME;
 	std::vector<TableColumn> columns
 	{
 		TableColumn(CLIENTS_COLUMN_ID,   ColumnType::CT_INTEGER, true       ),
 		TableColumn(CLIENTS_COLUMN_UUID, ColumnType::CT_TEXT,    false, true),
 	};
 
-	auto clients = m_psqlite3->selectMany(tableName, columns);
+	auto clients = m_psqlite3->selectMany(Server::CLIENTS_TABLE_NAME, columns);
 
 	auto currentTime = std::chrono::system_clock::now();
 	auto interval1 = (currentTime - std::chrono::minutes(1)).time_since_epoch().count(); // Last 1 minute.
 	auto interval5 = (currentTime - std::chrono::minutes(5)).time_since_epoch().count(); // Last 5 minutes.
 
-	for (const auto& c : *clients)
+	for (const auto& client : *clients)
 	{
 		__int64 clientId = std::any_cast<__int64>(c.at(0).value());
 		std::string clientUuid = std::any_cast<std::string>(c.at(1).value());
 
-		tableName = Server::PACKETS_TABLE_NAME;
 		std::vector<TableColumn> columns
 		{
 			TableColumn(PACKETS_COLUMN_TIMESTAMP, ColumnType::CT_INTEGER),
@@ -129,7 +125,7 @@ std::unique_ptr<tz::ServerStatistic> Server::collectStatistics()
 			TableColumn(PACKETS_COLUMN_Y,         ColumnType::CT_REAL   ),
 		};
 		WhereClause whereClause(TableValue(PACKETS_COLUMN_CLIENT_ID, clientId), ComparisonType::CT_EQUAL);
-		auto packets = m_psqlite3->selectMany(tableName, columns, &whereClause);
+		auto packets = m_psqlite3->selectMany(Server::PACKETS_TABLE_NAME, columns, &whereClause);
 
 		double sumX1 = 0;
 		double sumX5 = 0;
@@ -142,7 +138,7 @@ std::unique_ptr<tz::ServerStatistic> Server::collectStatistics()
 		bool needToAdd1 = false;
 		bool needToAdd5 = false;
 
-		for (const auto& p : *packets)
+		for (const auto& packet : *packets)
 		{
 			__int64 timestamp = std::any_cast<__int64>(p.at(0).value());
 			double x = std::any_cast<double>(p.at(1).value());
@@ -197,15 +193,13 @@ Server::Server(const std::string& port) :
 	m_port(port),
 	m_psqlite3(std::make_unique<SQLite>(Server::DB_NAME))
 {
-	std::string tableName = Server::CLIENTS_TABLE_NAME;
 	std::vector<TableColumn> columns
 	{
 		TableColumn(CLIENTS_COLUMN_ID,   ColumnType::CT_INTEGER, true       ),
 		TableColumn(CLIENTS_COLUMN_UUID, ColumnType::CT_TEXT,    false, true),
 	};
-	m_psqlite3->createTable(tableName, columns);
+	m_psqlite3->createTable(Server::CLIENTS_TABLE_NAME, columns);
 
-	tableName = Server::PACKETS_TABLE_NAME;
 	columns.assign(
 	{
 		TableColumn(PACKETS_COLUMN_ID,        ColumnType::CT_INTEGER, true),
@@ -214,16 +208,18 @@ Server::Server(const std::string& port) :
 		TableColumn(PACKETS_COLUMN_X,         ColumnType::CT_REAL         ),
 		TableColumn(PACKETS_COLUMN_Y,         ColumnType::CT_REAL         ),
 	});
-	m_psqlite3->createTable(tableName, columns);
+	m_psqlite3->createTable(Server::PACKETS_TABLE_NAME, columns);
 }
 
 void Server::start()
 {
-	auto const address = net::ip::make_address("0.0.0.0");
+	auto const address = net::ip::make_address(BIND_IP_ADDRESS);
 	auto const port = static_cast<unsigned short>(std::atoi(m_port.c_str()));
 
 	tcp::acceptor acceptor{ m_ioc, {address, port} };
 	acceptor.non_blocking(true);
+
+	std::cout << "Server started." << std::endl;
 
 	while (!m_needExit)
 	{
@@ -233,6 +229,9 @@ void Server::start()
 		{
 			tcp::socket socket{ m_ioc };
 			acceptor.accept(socket);
+
+			std::cout << "Client connected from " << socket.local_endpoint().address() << ":" << socket.local_endpoint().port() << "." << std::endl;
+
 			m_threads.emplace_back(std::thread(&Server::clientThread, this, std::move(socket)));
 		}
 		catch (const beast::system_error&)
@@ -240,10 +239,12 @@ void Server::start()
 		}
 	}
 
-	for (auto& th : m_threads)
+	for (auto& thread : m_threads)
 	{
-		th.join();
+		thread.join();
 	}
+
+	std::cout << "Server stopped." << std::endl;
 }
 
 void Server::stop()

@@ -18,9 +18,9 @@ SQLite::~SQLite()
 	}
 }
 
-void SQLite::createTable(const std::string& tableName, const std::vector<TableColumn>& columns)
+void SQLite::createTable(const std::string& tableName, const std::vector<TableColumn>& tableColumns)
 {
-	if (tableName.empty() || columns.empty())
+	if (tableName.empty() || tableColumns.empty())
 	{
 		throw std::exception("Invalid arguments.");
 	}
@@ -28,11 +28,11 @@ void SQLite::createTable(const std::string& tableName, const std::vector<TableCo
 	std::string query = "CREATE TABLE IF NOT EXISTS " + tableName + "(";
 
 	bool first = true;
-	for (const auto& c : columns)
+	for (const auto& tableColumn : tableColumns)
 	{
 		std::string typeStr;
 
-		switch (c.type())
+		switch (tableColumn.type())
 		{
 		case ColumnType::CT_INTEGER: typeStr = "INTEGER"; break;
 		case ColumnType::CT_REAL:    typeStr = "REAL";    break;
@@ -48,11 +48,11 @@ void SQLite::createTable(const std::string& tableName, const std::vector<TableCo
 		else
 			query += ", ";
 
-		query += c.name() + " " + typeStr;
+		query += tableColumn.name() + " " + typeStr;
 
-		if (c.primaryKey()) query += " PRIMARY KEY";
-		if (c.unique())     query += " UNIQUE";
-		if (c.notNull())    query += " NOT NULL";
+		if (tableColumn.primaryKey()) query += " PRIMARY KEY";
+		if (tableColumn.unique())     query += " UNIQUE";
+		if (tableColumn.notNull())    query += " NOT NULL";
 	}
 
 	query += ");";
@@ -70,9 +70,9 @@ void SQLite::createTable(const std::string& tableName, const std::vector<TableCo
 	}
 }
 
-void SQLite::insertOne(const std::string& tableName, const std::vector<TableValue>& values)
+void SQLite::insertOne(const std::string& tableName, const std::vector<TableValue>& tableValues)
 {
-	if (tableName.empty() || values.empty())
+	if (tableName.empty() || tableValues.empty())
 	{
 		throw std::exception("Invalid arguments.");
 	}
@@ -80,7 +80,7 @@ void SQLite::insertOne(const std::string& tableName, const std::vector<TableValu
 	std::string query = "INSERT INTO " + tableName + "(";
 
 	bool first = true;
-	for (const auto& v : values)
+	for (const auto& tableValue : tableValues)
 	{
 		if (first)
 		{
@@ -89,13 +89,13 @@ void SQLite::insertOne(const std::string& tableName, const std::vector<TableValu
 		else
 			query += ", ";
 
-		query += v.columnName();
+		query += tableValue.columnName();
 	}
 
 	query += ") VALUES(";
 
 	first = true;
-	for (const auto& v : values)
+	for (const auto& tableValue : tableValues)
 	{
 		if (first)
 		{
@@ -135,10 +135,10 @@ void SQLite::insertOne(const std::string& tableName, const std::vector<TableValu
 	}
 }
 
-std::unique_ptr<std::vector<TableValue>> SQLite::selectOne(const std::string& tableName, const std::vector<TableColumn>& columns,
+std::unique_ptr<std::vector<TableValue>> SQLite::selectOne(const std::string& tableName, const std::vector<TableColumn>& tableColumns,
 	const WhereClause* pWhereClause, const OrderByClause* pOrderByClause)
 {
-	std::unique_ptr<std::vector<std::vector<TableValue>>> rows = selectMany(tableName, columns, pWhereClause, pOrderByClause, 1);
+	std::unique_ptr<std::vector<std::vector<TableValue>>> rows = selectMany(tableName, tableColumns, pWhereClause, pOrderByClause, 1);
 	std::unique_ptr<std::vector<TableValue>> row = std::make_unique<std::vector<TableValue>>();
 
 	if (!rows->empty())
@@ -149,10 +149,10 @@ std::unique_ptr<std::vector<TableValue>> SQLite::selectOne(const std::string& ta
 	return row;
 }
 
-std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const std::string& tableName, const std::vector<TableColumn>& columns,
+std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const std::string& tableName, const std::vector<TableColumn>& tableColumns,
 	const WhereClause* pWhereClause, const OrderByClause* pOrderByClause, size_t rowCount)
 {
-	if (tableName.empty() || columns.empty())
+	if (tableName.empty() || tableColumns.empty())
 	{
 		throw std::exception("Invalid arguments.");
 	}
@@ -160,7 +160,7 @@ std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const s
 	std::string query = "SELECT ";
 
 	bool first = true;
-	for (const auto& c : columns)
+	for (const auto& tableColumn : tableColumns)
 	{
 		if (first)
 		{
@@ -169,14 +169,15 @@ std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const s
 		else
 			query += ", ";
 
-		query += c.name();
+		query += tableColumn.name();
 	}
 
 	query += " FROM " + tableName;
 
 	if (pWhereClause)
 	{
-		query += " WHERE " + pWhereClause->value().columnName() + " ";
+		auto& tableValue = pWhereClause->value();
+		query += " WHERE " + tableValue.columnName() + " ";
 
 		switch (pWhereClause->type())
 		{
@@ -238,13 +239,13 @@ std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const s
 		int i = 0;
 		std::vector<TableValue> row;
 
-		for (const auto& c : columns)
+		for (const auto& tableColumn : tableColumns)
 		{
-			switch (c.type())
+			switch (tableColumn.type())
 			{
-			case ColumnType::CT_INTEGER: row.push_back(TableValue(c.name(), sqlite3_column_int64(pstmt, i)));  break;
-			case ColumnType::CT_REAL:    row.push_back(TableValue(c.name(), sqlite3_column_double(pstmt, i))); break;
-			case ColumnType::CT_TEXT:    row.push_back(TableValue(c.name(), static_cast<std::string>((const char*)sqlite3_column_text(pstmt, i)))); break;
+			case ColumnType::CT_INTEGER: row.push_back(TableValue(tableColumn.name(), sqlite3_column_int64(pstmt, i)));  break;
+			case ColumnType::CT_REAL:    row.push_back(TableValue(tableColumn.name(), sqlite3_column_double(pstmt, i))); break;
+			case ColumnType::CT_TEXT:    row.push_back(TableValue(tableColumn.name(), static_cast<std::string>((const char*)sqlite3_column_text(pstmt, i)))); break;
 			}
 
 			++i;

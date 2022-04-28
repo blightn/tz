@@ -33,3 +33,9 @@
 
 # MSVS
 .vs/
+Bins/
+Client/x86/
+Client/x64/
+Server/x86/
+Server/x64/
+tz.sqlite3

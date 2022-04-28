@@ -28,6 +28,8 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 class Server
 {
+	inline static const std::string BIND_IP_ADDRESS = "0.0.0.0";
+
 	inline static const std::string DB_NAME = "tz.sqlite3";
 
 	inline static const std::string CLIENTS_TABLE_NAME = "clients";
