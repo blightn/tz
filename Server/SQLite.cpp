@@ -104,17 +104,19 @@ void SQLite::insertOne(const std::string& tableName, const std::vector<TableValu
 		else
 			query += ", ";
 
-		if (v.value().type() == typeid(__int64))
+		auto& cellValue = tableValue.value();
+
+		if (std::holds_alternative<std::string>(cellValue))
 		{
-			query += std::to_string(std::any_cast<__int64>(v.value()));
+			query += "\"" + std::get<std::string>(cellValue) + "\"";
 		}
-		else if (v.value().type() == typeid(double))
+		else if (std::holds_alternative<int64_t>(cellValue))
 		{
-			query += std::to_string(std::any_cast<double>(v.value()));
+			query += std::to_string(std::get<int64_t>(cellValue));
 		}
-		else if (v.value().type() == typeid(std::string))
+		else if (std::holds_alternative<double>(cellValue))
 		{
-			query += "\"" + std::any_cast<std::string>(v.value()) + "\"";
+			query += std::to_string(std::get<double>(cellValue));
 		}
 		else
 			throw std::exception("Invalid type.");
@@ -190,17 +192,19 @@ std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const s
 
 		query += " ";
 
-		if (pWhereClause->value().value().type() == typeid(__int64))
+		auto& cellValue = tableValue.value();
+
+		if (std::holds_alternative<std::string>(cellValue))
 		{
-			query += std::to_string(std::any_cast<__int64>(pWhereClause->value().value()));
+			query += "\"" + std::get<std::string>(cellValue) + "\"";
 		}
-		else if (pWhereClause->value().value().type() == typeid(double))
+		else if (std::holds_alternative<int64_t>(cellValue))
 		{
-			query += std::to_string(std::any_cast<double>(pWhereClause->value().value()));
+			query += std::to_string(std::get<int64_t>(cellValue));
 		}
-		else if (pWhereClause->value().value().type() == typeid(std::string))
+		else if (std::holds_alternative<double>(cellValue))
 		{
-			query += "\"" + std::any_cast<std::string>(pWhereClause->value().value()) + "\"";
+			query += std::to_string(std::get<double>(cellValue));
 		}
 		else
 			throw std::exception("Invalid type.");

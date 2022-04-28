@@ -4,10 +4,12 @@
 #include <string>
 #include <exception>
 #include <vector>
-#include <any>
+#include <variant>
 #include <memory>
 
 #include "..\sqlite3\sqlite3.h"
+
+using DBVariants = std::variant<std::string, int64_t, double>;
 
 enum class ColumnType { CT_INTEGER, CT_REAL, CT_TEXT };
 
@@ -38,16 +40,16 @@ public:
 class TableValue
 {
 	std::string m_columnName;
-	std::any    m_value;
+	DBVariants  m_value;
 
 public:
-	TableValue(const std::string& columnName, const std::any& value) :
+	TableValue(const std::string& columnName, const DBVariants& value) :
 		m_columnName(columnName),
 		m_value(value)
 	{ }
 
-	std::string columnName() const { return m_columnName; };
-	std::any value()         const { return m_value;      };
+	std::string columnName()  const { return m_columnName; };
+	const DBVariants& value() const { return m_value;      };
 };
 
 enum class ComparisonType { CT_LESSER, CT_GREATER, CT_EQUAL };
@@ -63,8 +65,8 @@ public:
 		m_type(type)
 	{ }
 
-	TableValue value()    const { return m_value; };
-	ComparisonType type() const { return m_type;  };
+	const TableValue& value() const { return m_value; };
+	ComparisonType type()     const { return m_type;  };
 };
 
 enum class SortingOrder { SO_ASC, SO_DESC };

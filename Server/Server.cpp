@@ -41,6 +41,10 @@ void Server::clientThread(tcp::socket socket)
 	{
 		std::cerr << "Connection closed." << std::endl;
 	}
+	catch (const std::bad_variant_access&)
+	{
+		std::cerr << "Invalid type from the DB." << std::endl;
+	}
 	catch (const std::exception& ex)
 	{
 		std::cerr << "Error: " << ex.what() << std::endl;
@@ -115,8 +119,8 @@ std::unique_ptr<tz::ServerStatistic> Server::collectStatistics()
 
 	for (const auto& client : *clients)
 	{
-		__int64 clientId = std::any_cast<__int64>(c.at(0).value());
-		std::string clientUuid = std::any_cast<std::string>(c.at(1).value());
+		int64_t clientId       = std::get<int64_t>    (client.at(0).value());
+		std::string clientUuid = std::get<std::string>(client.at(1).value());
 
 		std::vector<TableColumn> columns
 		{
@@ -140,9 +144,9 @@ std::unique_ptr<tz::ServerStatistic> Server::collectStatistics()
 
 		for (const auto& packet : *packets)
 		{
-			__int64 timestamp = std::any_cast<__int64>(p.at(0).value());
-			double x = std::any_cast<double>(p.at(1).value());
-			double y = std::any_cast<double>(p.at(2).value());
+			int64_t timestamp = std::get<int64_t>(packet.at(0).value());
+			double x          = std::get<double> (packet.at(1).value());
+			double y          = std::get<double> (packet.at(2).value());
 
 			if (timestamp >= interval1)
 			{
