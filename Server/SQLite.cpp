@@ -104,43 +104,87 @@ void SQLite::insertOne(const std::string& tableName, const std::vector<TableValu
 		else
 			query += ", ";
 
-		auto& cellValue = tableValue.value();
+	sqlite3_stmt* pstmt = nullptr;
 
-		if (std::holds_alternative<std::string>(cellValue))
-		{
-			query += "\"" + std::get<std::string>(cellValue) + "\"";
-		}
-		else if (std::holds_alternative<int64_t>(cellValue))
-		{
-			query += std::to_string(std::get<int64_t>(cellValue));
-		}
-		else if (std::holds_alternative<double>(cellValue))
-		{
-			query += std::to_string(std::get<double>(cellValue));
-		}
-		else
-			throw std::exception("Invalid type.");
-	}
-
-	query += ");";
-
-	char* errMsg = nullptr;
-	int res = sqlite3_exec(m_psqlite3, query.c_str(), nullptr, nullptr, &errMsg);
-	if (res != SQLITE_OK)
+	try
 	{
-		std::string text = "Can't INSERT into table \"" + tableName + "\" with error: " + errMsg;
+		int res = sqlite3_prepare_v2(m_psqlite3, query.c_str(), -1, &pstmt, nullptr);
+		if (res != SQLITE_OK)
+		{
+			std::string text = "sqlite3_prepare_v2() ERROR: " + std::to_string(res);
+			throw std::exception(text.c_str());
+		}
 
-		sqlite3_free(errMsg);
-		errMsg = nullptr;
+		int index = 1;
+		for (const auto& tableValue : tableValues)
+		{
+			auto& cellValue = tableValue.value();
 
+			if (std::holds_alternative<std::string>(cellValue))
+			{
+				res = sqlite3_bind_text(pstmt, index, std::get<std::string>(cellValue).c_str(), -1, nullptr);
+			}
+			else if (std::holds_alternative<int64_t>(cellValue))
+			{
+				res = sqlite3_bind_int64(pstmt, index, std::get<int64_t>(cellValue));
+			}
+			else if (std::holds_alternative<double>(cellValue))
+			{
+				res = sqlite3_bind_double(pstmt, index, std::get<double>(cellValue));
+			}
+			else
+			{
+				std::string text = "Invalid type for column: " + tableValue.columnName();
+				throw std::exception(text.c_str());
+			}
+
+			if (res != SQLITE_OK)
+			{
+				std::string text = "sqlite3_bind_*() ERROR: " + std::to_string(res);
+				throw std::exception(text.c_str());
+			}
+
+			++index;
+		}
+
+		res = 0;
+		if ((res = sqlite3_step(pstmt)) != SQLITE_DONE)
+		{
+			std::string text = "sqlite3_step() ERROR: " + std::to_string(res);
+			throw std::exception(text.c_str());
+		}
+	}
+	catch (const std::exception& ex)
+	{
+		if (pstmt)
+		{
+			sqlite3_finalize(pstmt);
+			pstmt = nullptr;
+		}
+
+		std::string text = "Can't INSERT into table \"" + tableName + "\": " + ex.what() + ".";
 		throw std::exception(text.c_str());
 	}
+
+	sqlite3_finalize(pstmt);
+	pstmt = nullptr;
 }
 
 std::unique_ptr<std::vector<TableValue>> SQLite::selectOne(const std::string& tableName, const std::vector<TableColumn>& tableColumns,
 	const WhereClause* pWhereClause, const OrderByClause* pOrderByClause)
 {
-	std::unique_ptr<std::vector<std::vector<TableValue>>> rows = selectMany(tableName, tableColumns, pWhereClause, pOrderByClause, 1);
+	std::unique_ptr<std::vector<std::vector<TableValue>>> rows;
+
+	try
+	{
+		rows = selectMany(tableName, tableColumns, pWhereClause, pOrderByClause, 1);
+	}
+	catch (const std::exception& ex)
+	{
+		std::string text = "Can't SELECT from table \"" + tableName + "\": " + ex.what() + ".";
+		throw std::exception(text.c_str());
+	}
+
 	std::unique_ptr<std::vector<TableValue>> row = std::make_unique<std::vector<TableValue>>();
 
 	if (!rows->empty())
@@ -178,8 +222,7 @@ std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const s
 
 	if (pWhereClause)
 	{
-		auto& tableValue = pWhereClause->value();
-		query += " WHERE " + tableValue.columnName() + " ";
+		query += " WHERE " + pWhereClause->tableValue().columnName() + " ";
 
 		switch (pWhereClause->type())
 		{
@@ -190,24 +233,7 @@ std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const s
 			throw std::exception("Unknown comparison type.");
 		}
 
-		query += " ";
-
-		auto& cellValue = tableValue.value();
-
-		if (std::holds_alternative<std::string>(cellValue))
-		{
-			query += "\"" + std::get<std::string>(cellValue) + "\"";
-		}
-		else if (std::holds_alternative<int64_t>(cellValue))
-		{
-			query += std::to_string(std::get<int64_t>(cellValue));
-		}
-		else if (std::holds_alternative<double>(cellValue))
-		{
-			query += std::to_string(std::get<double>(cellValue));
-		}
-		else
-			throw std::exception("Invalid type.");
+		query += " ?";
 	}
 
 	if (pOrderByClause)
@@ -229,34 +255,76 @@ std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const s
 	query += ";";
 
 	sqlite3_stmt* pstmt = nullptr;
-	int res = sqlite3_prepare_v2(m_psqlite3, query.c_str(), -1, &pstmt, nullptr);
-	if (res != SQLITE_OK)
-	{
-		std::string text = "Can't SELECT from table \"" + tableName + "\".";
-		throw std::exception(text.c_str());
-	}
-
 	std::unique_ptr<std::vector<std::vector<TableValue>>> rows = std::make_unique<std::vector<std::vector<TableValue>>>();
 
-	while (rowCount && sqlite3_step(pstmt) == SQLITE_ROW)
+	try
 	{
-		int i = 0;
-		std::vector<TableValue> row;
-
-		for (const auto& tableColumn : tableColumns)
+		int res = sqlite3_prepare_v2(m_psqlite3, query.c_str(), -1, &pstmt, nullptr);
+		if (res != SQLITE_OK)
 		{
-			switch (tableColumn.type())
-			{
-			case ColumnType::CT_INTEGER: row.push_back(TableValue(tableColumn.name(), sqlite3_column_int64(pstmt, i)));  break;
-			case ColumnType::CT_REAL:    row.push_back(TableValue(tableColumn.name(), sqlite3_column_double(pstmt, i))); break;
-			case ColumnType::CT_TEXT:    row.push_back(TableValue(tableColumn.name(), static_cast<std::string>((const char*)sqlite3_column_text(pstmt, i)))); break;
-			}
-
-			++i;
+			std::string text = "sqlite3_prepare_v2() ERROR: " + res;
+			throw std::exception(text.c_str());
 		}
 
-		rows->push_back(row);
-		--rowCount;
+		if (pWhereClause)
+		{
+			auto& cellValue = pWhereClause->tableValue().value();
+
+			if (std::holds_alternative<std::string>(cellValue))
+			{
+				res = sqlite3_bind_text(pstmt, 1, std::get<std::string>(cellValue).c_str(), -1, nullptr);
+			}
+			else if (std::holds_alternative<int64_t>(cellValue))
+			{
+				res = sqlite3_bind_int64(pstmt, 1, std::get<int64_t>(cellValue));
+			}
+			else if (std::holds_alternative<double>(cellValue))
+			{
+				res = sqlite3_bind_double(pstmt, 1, std::get<double>(cellValue));
+			}
+			else
+			{
+				std::string text = "Invalid type for column: " + pWhereClause->tableValue().columnName();
+				throw std::exception(text.c_str());
+			}
+
+			if (res != SQLITE_OK)
+			{
+				std::string text = "sqlite3_bind_*() ERROR: " + std::to_string(res);
+				throw std::exception(text.c_str());
+			}
+		}
+
+		while (rowCount && sqlite3_step(pstmt) == SQLITE_ROW)
+		{
+			int i = 0;
+			std::vector<TableValue> row;
+
+			for (const auto& tableColumn : tableColumns)
+			{
+				switch (tableColumn.type())
+				{
+				case ColumnType::CT_INTEGER: row.push_back(TableValue(tableColumn.name(), sqlite3_column_int64(pstmt, i)));  break;
+				case ColumnType::CT_REAL:    row.push_back(TableValue(tableColumn.name(), sqlite3_column_double(pstmt, i))); break;
+				case ColumnType::CT_TEXT:    row.push_back(TableValue(tableColumn.name(), static_cast<std::string>((const char*)sqlite3_column_text(pstmt, i)))); break;
+				}
+
+				++i;
+			}
+
+			rows->push_back(row);
+			--rowCount;
+		}
+	}
+	catch (const std::exception&)
+	{
+		if (pstmt)
+		{
+			sqlite3_finalize(pstmt);
+			pstmt = nullptr;
+		}
+
+		throw;
 	}
 
 	sqlite3_finalize(pstmt);

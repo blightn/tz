@@ -56,17 +56,17 @@ enum class ComparisonType { CT_LESSER, CT_GREATER, CT_EQUAL };
 
 class WhereClause
 {
-	TableValue     m_value;
+	TableValue     m_tableValue;
 	ComparisonType m_type;
 
 public:
 	WhereClause(const TableValue& value, const ComparisonType& type) :
-		m_value(value),
+		m_tableValue(value),
 		m_type(type)
 	{ }
 
-	const TableValue& value() const { return m_value; };
-	ComparisonType type()     const { return m_type;  };
+	const TableValue& tableValue() const { return m_tableValue; };
+	ComparisonType type()          const { return m_type;       };
 };
 
 enum class SortingOrder { SO_ASC, SO_DESC };
