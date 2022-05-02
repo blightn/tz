@@ -74,7 +74,7 @@ void SQLite::insertOne(const std::string& tableName, const std::vector<TableValu
 {
 	if (tableName.empty() || tableValues.empty())
 	{
-		throw std::exception("Invalid arguments.");
+		throw std::exception("Invalid arguments for insertOne().");
 	}
 
 	std::string query = "INSERT INTO " + tableName + "(";
@@ -94,15 +94,13 @@ void SQLite::insertOne(const std::string& tableName, const std::vector<TableValu
 
 	query += ") VALUES(";
 
-	first = true;
-	for (const auto& tableValue : tableValues)
+	for (int i = 0; i < tableValues.size(); ++i)
 	{
-		if (first)
-		{
-			first = false;
-		}
-		else
-			query += ", ";
+		if (i) query += ", ";
+		query += "?";
+	}
+
+	query += ");";
 
 	sqlite3_stmt* pstmt = nullptr;
 
@@ -200,7 +198,7 @@ std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const s
 {
 	if (tableName.empty() || tableColumns.empty())
 	{
-		throw std::exception("Invalid arguments.");
+		throw std::exception("Invalid arguments for selectMany()");
 	}
 
 	std::string query = "SELECT ";
@@ -230,7 +228,7 @@ std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const s
 		case ComparisonType::CT_GREATER: query += ">"; break;
 		case ComparisonType::CT_EQUAL:   query += "="; break;
 		default:
-			throw std::exception("Unknown comparison type.");
+			throw std::exception("Unknown comparison type");
 		}
 
 		query += " ?";
@@ -249,7 +247,7 @@ std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const s
 			query += "DESC";
 		}
 		else
-			throw std::exception("Invalid sorting order.");
+			throw std::exception("Invalid sorting order");
 	}
 
 	query += ";";

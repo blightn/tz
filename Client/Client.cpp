@@ -118,7 +118,7 @@ std::string Client::getStatistics()
 		{
 			if (i) statsStr += "\n";
 
-			auto client = stats.client(i);
+			auto& client = stats.client(i);
 			statsStr += client.uuid()               + " " +
 				        std::to_string(client.x1()) + " " +
 				        std::to_string(client.y1()) + " " +

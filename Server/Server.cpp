@@ -57,7 +57,7 @@ void Server::saveClientPacket(const tz::ClientPacket& packet)
 {
 	if (packet.has_data())
 	{
-		auto data = packet.data();
+		auto& data = packet.data();
 
 		std::vector<TableColumn> columns
 		{
@@ -218,7 +218,7 @@ Server::Server(const std::string& port) :
 void Server::start()
 {
 	auto const address = net::ip::make_address(BIND_IP_ADDRESS);
-	auto const port = static_cast<unsigned short>(std::atoi(m_port.c_str()));
+	auto const port    = static_cast<unsigned short>(std::atoi(m_port.c_str()));
 
 	tcp::acceptor acceptor{ m_ioc, {address, port} };
 	acceptor.non_blocking(true);
