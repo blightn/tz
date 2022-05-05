@@ -234,7 +234,7 @@ void Server::start()
 			tcp::socket socket{ m_ioc };
 			acceptor.accept(socket);
 
-			std::cout << "Client connected from " << socket.local_endpoint().address() << ":" << socket.local_endpoint().port() << "." << std::endl;
+			std::cout << "Client connected from " << socket.local_endpoint().address() << ":" << socket.local_endpoint().port() << std::endl;
 
 			m_threads.emplace_back(std::thread(&Server::clientThread, this, std::move(socket)));
 		}
