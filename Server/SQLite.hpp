@@ -96,9 +96,9 @@ public:
 
 	void createTable(const std::string& tableName, const std::vector<TableColumn>& tableColumns);
 	void insertOne(const std::string& tableName, const std::vector<TableValue>& tableValues);
-	std::unique_ptr<std::vector<TableValue>> selectOne(const std::string& tableName, const std::vector<TableColumn>& tableColumns,
+	std::vector<TableValue> selectOne(const std::string& tableName, const std::vector<TableColumn>& tableColumns,
 		const WhereClause* pWhereClause = nullptr, const OrderByClause* pOrderByClause = nullptr);
-	std::unique_ptr<std::vector<std::vector<TableValue>>> selectMany(const std::string& tableName, const std::vector<TableColumn>& tableColumns,
+	std::vector<std::vector<TableValue>> selectMany(const std::string& tableName, const std::vector<TableColumn>& tableColumns,
 		const WhereClause* pWhereClause = nullptr, const OrderByClause* pOrderByClause = nullptr, size_t rowCount = -1);
 };
 

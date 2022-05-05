@@ -168,10 +168,10 @@ void SQLite::insertOne(const std::string& tableName, const std::vector<TableValu
 	pstmt = nullptr;
 }
 
-std::unique_ptr<std::vector<TableValue>> SQLite::selectOne(const std::string& tableName, const std::vector<TableColumn>& tableColumns,
+std::vector<TableValue> SQLite::selectOne(const std::string& tableName, const std::vector<TableColumn>& tableColumns,
 	const WhereClause* pWhereClause, const OrderByClause* pOrderByClause)
 {
-	std::unique_ptr<std::vector<std::vector<TableValue>>> rows;
+	std::vector<std::vector<TableValue>> rows;
 
 	try
 	{
@@ -183,9 +183,9 @@ std::unique_ptr<std::vector<TableValue>> SQLite::selectOne(const std::string& ta
 		throw std::exception(text.c_str());
 	}
 
-	std::unique_ptr<std::vector<TableValue>> row = std::make_unique<std::vector<TableValue>>();
+	std::vector<TableValue> row;
 
-	if (!rows->empty())
+	if (!rows.empty())
 	{
 		*row = rows->at(0);
 	}
@@ -193,7 +193,7 @@ std::unique_ptr<std::vector<TableValue>> SQLite::selectOne(const std::string& ta
 	return row;
 }
 
-std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const std::string& tableName, const std::vector<TableColumn>& tableColumns,
+std::vector<std::vector<TableValue>> SQLite::selectMany(const std::string& tableName, const std::vector<TableColumn>& tableColumns,
 	const WhereClause* pWhereClause, const OrderByClause* pOrderByClause, size_t rowCount)
 {
 	if (tableName.empty() || tableColumns.empty())
@@ -253,7 +253,7 @@ std::unique_ptr<std::vector<std::vector<TableValue>>> SQLite::selectMany(const s
 	query += ";";
 
 	sqlite3_stmt* pstmt = nullptr;
-	std::unique_ptr<std::vector<std::vector<TableValue>>> rows = std::make_unique<std::vector<std::vector<TableValue>>>();
+	std::vector<std::vector<TableValue>> rows;
 
 	try
 	{

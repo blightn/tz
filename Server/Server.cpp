@@ -69,7 +69,7 @@ void Server::saveClientPacket(const tz::ClientPacket& packet)
 		{
 			auto client = m_psqlite3->selectOne(Server::CLIENTS_TABLE_NAME, columns, &whereClause);
 
-			if (client->empty())
+			if (client.empty())
 			{
 				std::vector<TableValue> values
 				{
@@ -82,10 +82,10 @@ void Server::saveClientPacket(const tz::ClientPacket& packet)
 
 			std::vector<TableValue> values
 			{
-				TableValue(PACKETS_COLUMN_CLIENT_ID, client->at(0).value()),
-				TableValue(PACKETS_COLUMN_TIMESTAMP, data.timestamp()     ),
-				TableValue(PACKETS_COLUMN_X,         data.x()             ),
-				TableValue(PACKETS_COLUMN_Y,         data.y()             ),
+				TableValue(PACKETS_COLUMN_CLIENT_ID, client.at(0).value()),
+				TableValue(PACKETS_COLUMN_TIMESTAMP, data.timestamp()    ),
+				TableValue(PACKETS_COLUMN_X,         data.x()            ),
+				TableValue(PACKETS_COLUMN_Y,         data.y()            ),
 			};
 			m_psqlite3->insertOne(Server::PACKETS_TABLE_NAME, values);
 		}
@@ -117,7 +117,7 @@ std::unique_ptr<tz::ServerStatistic> Server::collectStatistics()
 	auto interval1 = (currentTime - std::chrono::minutes(1)).time_since_epoch().count(); // Last 1 minute.
 	auto interval5 = (currentTime - std::chrono::minutes(5)).time_since_epoch().count(); // Last 5 minutes.
 
-	for (const auto& client : *clients)
+	for (const auto& client : clients)
 	{
 		int64_t clientId       = std::get<int64_t>    (client.at(0).value());
 		std::string clientUuid = std::get<std::string>(client.at(1).value());
@@ -142,7 +142,7 @@ std::unique_ptr<tz::ServerStatistic> Server::collectStatistics()
 		bool needToAdd1 = false;
 		bool needToAdd5 = false;
 
-		for (const auto& packet : *packets)
+		for (const auto& packet : packets)
 		{
 			int64_t timestamp = std::get<int64_t>(packet.at(0).value());
 			double x          = std::get<double> (packet.at(1).value());
