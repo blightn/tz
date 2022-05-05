@@ -187,7 +187,7 @@ std::vector<TableValue> SQLite::selectOne(const std::string& tableName, const st
 
 	if (!rows.empty())
 	{
-		*row = rows->at(0);
+		row = std::move(rows.front());
 	}
 
 	return row;
@@ -310,7 +310,7 @@ std::vector<std::vector<TableValue>> SQLite::selectMany(const std::string& table
 				++i;
 			}
 
-			rows->push_back(row);
+			rows.push_back(std::move(row));
 			--rowCount;
 		}
 	}
