@@ -114,8 +114,8 @@ std::unique_ptr<tz::ServerStatistic> Server::collectStatistics()
 	auto clients = m_psqlite3->selectMany(Server::CLIENTS_TABLE_NAME, columns);
 
 	auto currentTime = std::chrono::system_clock::now();
-	auto interval1 = (currentTime - std::chrono::minutes(1)).time_since_epoch().count(); // Last 1 minute.
-	auto interval5 = (currentTime - std::chrono::minutes(5)).time_since_epoch().count(); // Last 5 minutes.
+	auto interval1 = (currentTime - STATS_INTERVAL_MINUTES_1).time_since_epoch().count();
+	auto interval2 = (currentTime - STATS_INTERVAL_MINUTES_2).time_since_epoch().count();
 
 	for (const auto& client : clients)
 	{
@@ -158,7 +158,7 @@ std::unique_ptr<tz::ServerStatistic> Server::collectStatistics()
 				needToAdd1 = true;
 			}
 
-			if (timestamp >= interval5)
+			if (timestamp >= interval2)
 			{
 				sumX5 += x;
 				++countX5;

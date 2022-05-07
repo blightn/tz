@@ -44,6 +44,9 @@ class Server
 	inline static const std::string PACKETS_COLUMN_X         = "x";
 	inline static const std::string PACKETS_COLUMN_Y         = "y";
 
+	inline static constexpr auto STATS_INTERVAL_MINUTES_1 = std::chrono::minutes(1);
+	inline static constexpr auto STATS_INTERVAL_MINUTES_2 = std::chrono::minutes(5);
+
 	std::string              m_port;
 	net::io_context          m_ioc;
 	std::unique_ptr<SQLite>  m_psqlite3;

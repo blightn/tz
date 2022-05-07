@@ -4,7 +4,9 @@
 
 #include "Client.hpp"
 
-static std::unique_ptr<Client> g_pClient = nullptr;
+namespace {
+	std::unique_ptr<Client> g_pClient = nullptr;
+}
 
 void printUsage()
 {
@@ -12,14 +14,6 @@ void printUsage()
 	          << "Example:\n"
 	          << "\tclient 0.0.0.0:12345 --statistic\n"
 	          << std::endl;
-}
-
-void sigIntHandler(int signal)
-{
-	if (g_pClient)
-	{
-		g_pClient->stop();
-	}
 }
 
 int main(int argc, char* argv[])
@@ -50,7 +44,7 @@ int main(int argc, char* argv[])
 			}
 			else
 			{
-				std::signal(SIGINT, &sigIntHandler);
+				std::signal(SIGINT, [](int signal) { if (g_pClient) g_pClient->stop(); });
 				g_pClient->start();
 			}
 
